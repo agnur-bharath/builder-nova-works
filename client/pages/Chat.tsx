@@ -79,28 +79,8 @@ export default function Chat() {
   const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      content: newMessage,
-      isFromCharacter: false,
-      timestamp: new Date(),
-    };
-
-    setMessages(prev => [...prev, userMessage]);
+    await sendMessage(newMessage);
     setNewMessage('');
-    setIsTyping(true);
-
-    // Simulate AI response (replace with actual AI integration)
-    setTimeout(() => {
-      const aiResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        content: generateAIResponse(newMessage),
-        isFromCharacter: true,
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, aiResponse]);
-      setIsTyping(false);
-    }, 2000);
   };
 
   const generateAIResponse = (userMessage: string): string => {
