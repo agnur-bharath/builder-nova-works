@@ -1,50 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useAccount, useConnect, useDisconnect, useWriteContract, useReadContract } from 'wagmi';
-import { parseEther, formatEther } from 'viem';
-
-// Contract ABIs (simplified for demo)
-const NFT_ABI = [
-  {
-    name: 'createCharacter',
-    type: 'function',
-    stateMutability: 'nonpayable',
-    inputs: [
-      { name: 'name', type: 'string' },
-      { name: 'description', type: 'string' },
-      { name: 'personality', type: 'string' },
-      { name: 'avatarUrl', type: 'string' },
-      { name: 'tokenURI', type: 'string' },
-      { name: 'isPublic', type: 'bool' },
-    ],
-    outputs: [{ name: '', type: 'uint256' }],
-  },
-  {
-    name: 'getCharacter',
-    type: 'function',
-    stateMutability: 'view',
-    inputs: [{ name: 'tokenId', type: 'uint256' }],
-    outputs: [
-      { name: 'name', type: 'string' },
-      { name: 'description', type: 'string' },
-      { name: 'personality', type: 'string' },
-      { name: 'avatarUrl', type: 'string' },
-      { name: 'creator', type: 'address' },
-      { name: 'createdAt', type: 'uint256' },
-      { name: 'isPublic', type: 'bool' },
-    ],
-  },
-  {
-    name: 'getPublicCharacters',
-    type: 'function',
-    stateMutability: 'view',
-    inputs: [],
-    outputs: [{ name: '', type: 'uint256[]' }],
-  },
-] as const;
-
-// Contract addresses (to be updated after deployment)
-const NFT_CONTRACT_ADDRESS = '0x0000000000000000000000000000000000000000';
-const CHAT_CONTRACT_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 export interface Character {
   id: string;
@@ -57,21 +11,20 @@ export interface Character {
   isPublic: boolean;
 }
 
+// Mock Web3 functionality for now
 export function useWeb3() {
-  const { address, isConnected } = useAccount();
-  const { connect, connectors } = useConnect();
-  const { disconnect } = useDisconnect();
-  const { writeContract, isPending: isWritePending } = useWriteContract();
+  const [isConnected, setIsConnected] = useState(false);
+  const [address, setAddress] = useState<string | undefined>();
 
   const connectWallet = async () => {
-    const connector = connectors[0]; // Use first available connector
-    if (connector) {
-      await connect({ connector });
-    }
+    // Mock wallet connection
+    setIsConnected(true);
+    setAddress('0x1234567890123456789012345678901234567890');
   };
 
   const disconnectWallet = async () => {
-    await disconnect();
+    setIsConnected(false);
+    setAddress(undefined);
   };
 
   return {
@@ -79,13 +32,13 @@ export function useWeb3() {
     isConnected,
     connectWallet,
     disconnectWallet,
-    writeContract,
-    isWritePending,
+    writeContract: async () => {},
+    isWritePending: false,
   };
 }
 
 export function useNFTContract() {
-  const { writeContract, isWritePending } = useWriteContract();
+  const [isCreating, setIsCreating] = useState(false);
 
   const createCharacter = async (character: {
     name: string;
@@ -94,41 +47,17 @@ export function useNFTContract() {
     avatarUrl: string;
     isPublic: boolean;
   }) => {
-    try {
-      const tokenURI = JSON.stringify({
-        name: character.name,
-        description: character.description,
-        image: character.avatarUrl,
-        attributes: [
-          { trait_type: 'Personality', value: character.personality },
-          { trait_type: 'Public', value: character.isPublic ? 'Yes' : 'No' },
-        ],
-      });
-
-      const result = await writeContract({
-        address: NFT_CONTRACT_ADDRESS,
-        abi: NFT_ABI,
-        functionName: 'createCharacter',
-        args: [
-          character.name,
-          character.description,
-          character.personality,
-          character.avatarUrl,
-          tokenURI,
-          character.isPublic,
-        ],
-      });
-
-      return result;
-    } catch (error) {
-      console.error('Failed to create character:', error);
-      throw error;
-    }
+    setIsCreating(true);
+    // Mock character creation
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    console.log('Created character:', character);
+    setIsCreating(false);
+    return { hash: '0x1234...' };
   };
 
   return {
     createCharacter,
-    isCreating: isWritePending,
+    isCreating,
   };
 }
 
@@ -136,15 +65,8 @@ export function useCharacters() {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Read public characters from contract
-  const { data: publicCharacterIds } = useReadContract({
-    address: NFT_CONTRACT_ADDRESS,
-    abi: NFT_ABI,
-    functionName: 'getPublicCharacters',
-  });
-
   useEffect(() => {
-    // Mock data for now since contracts aren't deployed
+    // Mock data
     const mockCharacters: Character[] = [
       {
         id: '1',
@@ -178,9 +100,11 @@ export function useCharacters() {
       },
     ];
 
-    setCharacters(mockCharacters);
-    setLoading(false);
-  }, [publicCharacterIds]);
+    setTimeout(() => {
+      setCharacters(mockCharacters);
+      setLoading(false);
+    }, 1000);
+  }, []);
 
   return {
     characters,
@@ -192,42 +116,50 @@ export function useChat(characterId: string) {
   const [messages, setMessages] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  useEffect(() => {
+    // Initialize with a welcome message
+    const welcomeMessage = {
+      id: '1',
+      content: 'Greetings, traveler. I sense you seek knowledge from beyond the veil. What mysteries would you have me illuminate?',
+      isFromCharacter: true,
+      timestamp: new Date(Date.now() - 5 * 60 * 1000),
+    };
+    setMessages([welcomeMessage]);
+  }, [characterId]);
+
   const sendMessage = async (content: string) => {
     setIsLoading(true);
-    try {
-      // Add user message
-      const userMessage = {
-        id: Date.now().toString(),
-        content,
-        isFromCharacter: false,
+    
+    // Add user message
+    const userMessage = {
+      id: Date.now().toString(),
+      content,
+      isFromCharacter: false,
+      timestamp: new Date(),
+    };
+    setMessages(prev => [...prev, userMessage]);
+
+    // Simulate AI response
+    setTimeout(() => {
+      const aiResponse = {
+        id: (Date.now() + 1).toString(),
+        content: generateAIResponse(content),
+        isFromCharacter: true,
         timestamp: new Date(),
       };
-      setMessages(prev => [...prev, userMessage]);
-
-      // Simulate AI response (replace with actual AI integration)
-      setTimeout(() => {
-        const aiResponse = {
-          id: (Date.now() + 1).toString(),
-          content: generateAIResponse(content),
-          isFromCharacter: true,
-          timestamp: new Date(),
-        };
-        setMessages(prev => [...prev, aiResponse]);
-        setIsLoading(false);
-      }, 2000);
-    } catch (error) {
-      console.error('Failed to send message:', error);
+      setMessages(prev => [...prev, aiResponse]);
       setIsLoading(false);
-    }
+    }, 2000);
   };
 
   const generateAIResponse = (userMessage: string): string => {
-    // Mock AI response - replace with actual AI integration
     const responses = [
-      '*nods knowingly* Your question reveals a deep curiosity...',
-      'The ancient texts speak of such matters...',
-      'Interesting... I sense great potential in your inquiry...',
-      '*eyes glow with mystical energy* The answer lies within...',
+      '*nods knowingly* Your question reveals a deep curiosity about the arcane arts...',
+      'The ancient texts speak of such matters... *consults ethereal grimoire*',
+      'Interesting... I sense great potential in your inquiry. Let me share what I know...',
+      '*eyes glow with mystical energy* The answer lies within the cosmic patterns...',
+      'Ah, a fascinating topic. In my travels through the ethereal realms...',
+      '*traces glowing symbols in the air* The mysteries you seek are interconnected...',
     ];
     return responses[Math.floor(Math.random() * responses.length)];
   };
