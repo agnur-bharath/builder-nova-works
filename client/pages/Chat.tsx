@@ -60,10 +60,14 @@ const mockMessages: Message[] = [
 ];
 
 export default function Chat() {
-  const [messages, setMessages] = useState<Message[]>(mockMessages);
+  const { characterId } = useParams<{ characterId: string }>();
+  const navigate = useNavigate();
+  const { characters } = useCharacters();
+  const { messages, sendMessage, isLoading } = useChat(characterId!);
   const [newMessage, setNewMessage] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  const character = characters.find(c => c.id === characterId) || mockCharacter;
 
   useEffect(() => {
     // Auto-scroll to bottom when new messages arrive
