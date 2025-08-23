@@ -8,6 +8,10 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, MessageCircle, Sparkles, Zap, Users, Bot } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { WalletConnect } from '@/components/WalletConnect';
+import { useCharacters, useNFTContract } from '@/hooks/useWeb3';
+import { avatarGenerator } from '@/lib/avatar-generator';
+import { useNavigate } from 'react-router-dom';
 
 interface NFTCharacter {
   id: string;
