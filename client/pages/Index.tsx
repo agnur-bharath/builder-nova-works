@@ -58,6 +58,9 @@ const mockPublicNFTs: NFTCharacter[] = [
 ];
 
 export default function Index() {
+  const navigate = useNavigate();
+  const { characters, loading } = useCharacters();
+  const { createCharacter, isCreating } = useNFTContract();
   const [selectedCharacter, setSelectedCharacter] = useState<NFTCharacter | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newCharacter, setNewCharacter] = useState({
@@ -68,16 +71,25 @@ export default function Index() {
   });
 
   const handleCreateCharacter = async () => {
-    // TODO: Implement character creation with smart contract
-    console.log('Creating character:', newCharacter);
-    setIsCreateDialogOpen(false);
-    setNewCharacter({ name: '', description: '', personality: '', isPublic: false });
+    try {
+      // Generate avatar for the character
+      const avatarUrl = await avatarGenerator.generateCharacterAvatar(newCharacter.description);
+
+      // Create character NFT on blockchain
+      await createCharacter({
+        ...newCharacter,
+        avatarUrl: avatarUrl || '/placeholder.svg',
+      });
+
+      setIsCreateDialogOpen(false);
+      setNewCharacter({ name: '', description: '', personality: '', isPublic: false });
+    } catch (error) {
+      console.error('Failed to create character:', error);
+    }
   };
 
   const handleChatWithCharacter = (character: NFTCharacter) => {
-    setSelectedCharacter(character);
-    // TODO: Navigate to chat interface
-    console.log('Starting chat with:', character.name);
+    navigate(`/chat/${character.id}`);
   };
 
   return (
