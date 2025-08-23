@@ -1,11 +1,15 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Wallet, LogOut, Copy, ExternalLink } from 'lucide-react';
-import { useWeb3 } from '@/hooks/useWeb3';
-import { cn } from '@/lib/utils';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Wallet, LogOut, Copy, ExternalLink } from "lucide-react";
+import { useWeb3 } from "@/hooks/useWeb3";
+import { cn } from "@/lib/utils";
 
 export function WalletConnect() {
   const { address, isConnected, connectWallet, disconnectWallet } = useWeb3();
@@ -25,13 +29,13 @@ export function WalletConnect() {
 
   const openInExplorer = () => {
     if (address) {
-      window.open(`https://snowtrace.io/address/${address}`, '_blank');
+      window.open(`https://snowtrace.io/address/${address}`, "_blank");
     }
   };
 
   if (!isConnected) {
     return (
-      <Button 
+      <Button
         onClick={connectWallet}
         className="gradient-primary web3-glow hover:animate-glow-pulse"
       >
@@ -55,11 +59,14 @@ export function WalletConnect() {
           <CardContent className="p-4 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold">Wallet Connected</h3>
-              <Badge variant="secondary" className="bg-green-500/20 text-green-400 border-green-500/30">
+              <Badge
+                variant="secondary"
+                className="bg-green-500/20 text-green-400 border-green-500/30"
+              >
                 Avalanche
               </Badge>
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm text-muted-foreground">Address</label>
               <div className="flex items-center gap-2 p-2 rounded-md bg-muted/50 font-mono text-sm">
@@ -68,10 +75,7 @@ export function WalletConnect() {
                   size="sm"
                   variant="ghost"
                   onClick={handleCopyAddress}
-                  className={cn(
-                    "h-6 w-6 p-0",
-                    copied && "text-green-500"
-                  )}
+                  className={cn("h-6 w-6 p-0", copied && "text-green-500")}
                 >
                   <Copy className="w-3 h-3" />
                 </Button>

@@ -94,7 +94,7 @@ export default {
             boxShadow: "0 0 40px hsl(266 100% 69% / 0.6)",
           },
         },
-        "float": {
+        float: {
           "0%, 100%": {
             transform: "translateY(0)",
           },
@@ -115,7 +115,7 @@ export default {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "glow-pulse": "glow-pulse 2s ease-in-out infinite alternate",
-        "float": "float 3s ease-in-out infinite",
+        float: "float 3s ease-in-out infinite",
         "gradient-shift": "gradient-shift 3s ease infinite",
       },
     },

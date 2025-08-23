@@ -25,23 +25,23 @@ export class AvatarGenerator {
 
   async initializeClient() {
     // Mock initialization
-    console.log('Avatar generator initialized');
+    console.log("Avatar generator initialized");
     return true;
   }
 
   async generateAvatar(params: AvatarGenerationParams): Promise<string | null> {
     try {
       // Mock avatar generation - in a real implementation this would call the Hugging Face API
-      console.log('Generating avatar with params:', params);
-      
+      console.log("Generating avatar with params:", params);
+
       // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
       // Return a placeholder image for now
       // In a real implementation, this would return the generated image URL
-      return '/placeholder.svg';
+      return "/placeholder.svg";
     } catch (error) {
-      console.error('Avatar generation failed:', error);
+      console.error("Avatar generation failed:", error);
       throw error;
     }
   }
@@ -51,9 +51,9 @@ export class AvatarGenerator {
     const enhancedPrompt = `High-quality digital art portrait of ${description}, 
     fantasy character, detailed face, expressive eyes, professional artwork, 
     8k resolution, trending on artstation`;
-    
-    console.log('Generating character avatar for:', enhancedPrompt);
-    
+
+    console.log("Generating character avatar for:", enhancedPrompt);
+
     return this.generateAvatar({
       prompt: enhancedPrompt,
       randomizeSeed: true,

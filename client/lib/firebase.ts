@@ -1,7 +1,7 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: "AIzaSyC80BInIvowJwlsNKzhmgjaiuas5-yatKA",
@@ -10,7 +10,7 @@ const firebaseConfig = {
   storageBucket: "hackgenesis-204a6.firebasestorage.app",
   messagingSenderId: "949189003537",
   appId: "1:949189003537:web:53ef3c0a465297f7e4a4b0",
-  measurementId: "G-E7MKPP68B5"
+  measurementId: "G-E7MKPP68B5",
 };
 
 // Initialize Firebase

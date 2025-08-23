@@ -1,17 +1,30 @@
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { Plus, MessageCircle, Sparkles, Zap, Users, Bot } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { WalletConnect } from '@/components/WalletConnect';
-import { useCharacters, useNFTContract } from '@/hooks/useWeb3';
-import { avatarGenerator } from '@/lib/avatar-generator';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Plus, MessageCircle, Sparkles, Zap, Users, Bot } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { WalletConnect } from "@/components/WalletConnect";
+import { useCharacters, useNFTContract } from "@/hooks/useWeb3";
+import { avatarGenerator } from "@/lib/avatar-generator";
+import { useNavigate } from "react-router-dom";
 
 // NFTCharacter interface is now imported from useWeb3 hook
 
@@ -19,30 +32,38 @@ export default function Index() {
   const navigate = useNavigate();
   const { characters, loading } = useCharacters();
   const { createCharacter, isCreating } = useNFTContract();
-  const [selectedCharacter, setSelectedCharacter] = useState<NFTCharacter | null>(null);
+  const [selectedCharacter, setSelectedCharacter] =
+    useState<NFTCharacter | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newCharacter, setNewCharacter] = useState({
-    name: '',
-    description: '',
-    personality: '',
+    name: "",
+    description: "",
+    personality: "",
     isPublic: false,
   });
 
   const handleCreateCharacter = async () => {
     try {
       // Generate avatar for the character
-      const avatarUrl = await avatarGenerator.generateCharacterAvatar(newCharacter.description);
+      const avatarUrl = await avatarGenerator.generateCharacterAvatar(
+        newCharacter.description,
+      );
 
       // Create character NFT on blockchain
       await createCharacter({
         ...newCharacter,
-        avatarUrl: avatarUrl || '/placeholder.svg',
+        avatarUrl: avatarUrl || "/placeholder.svg",
       });
 
       setIsCreateDialogOpen(false);
-      setNewCharacter({ name: '', description: '', personality: '', isPublic: false });
+      setNewCharacter({
+        name: "",
+        description: "",
+        personality: "",
+        isPublic: false,
+      });
     } catch (error) {
-      console.error('Failed to create character:', error);
+      console.error("Failed to create character:", error);
     }
   };
 
@@ -84,13 +105,20 @@ export default function Index() {
               Characters
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Create unique AI characters as NFTs and chat with them on the Avalanche blockchain. 
-              Each character has its own personality and can learn from conversations.
+              Create unique AI characters as NFTs and chat with them on the
+              Avalanche blockchain. Each character has its own personality and
+              can learn from conversations.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <Dialog
+                open={isCreateDialogOpen}
+                onOpenChange={setIsCreateDialogOpen}
+              >
                 <DialogTrigger asChild>
-                  <Button size="lg" className="gradient-primary web3-glow hover:animate-glow-pulse">
+                  <Button
+                    size="lg"
+                    className="gradient-primary web3-glow hover:animate-glow-pulse"
+                  >
                     <Plus className="w-5 h-5 mr-2" />
                     Create Your Character
                   </Button>
@@ -99,16 +127,24 @@ export default function Index() {
                   <DialogHeader>
                     <DialogTitle>Create AI Character NFT</DialogTitle>
                     <DialogDescription>
-                      Describe your character and it will be minted as an NFT on Avalanche
+                      Describe your character and it will be minted as an NFT on
+                      Avalanche
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div>
-                      <label className="text-sm font-medium">Character Name</label>
+                      <label className="text-sm font-medium">
+                        Character Name
+                      </label>
                       <Input
                         placeholder="Enter character name..."
                         value={newCharacter.name}
-                        onChange={(e) => setNewCharacter({ ...newCharacter, name: e.target.value })}
+                        onChange={(e) =>
+                          setNewCharacter({
+                            ...newCharacter,
+                            name: e.target.value,
+                          })
+                        }
                       />
                     </div>
                     <div>
@@ -116,7 +152,12 @@ export default function Index() {
                       <Textarea
                         placeholder="Describe your character's appearance and background..."
                         value={newCharacter.description}
-                        onChange={(e) => setNewCharacter({ ...newCharacter, description: e.target.value })}
+                        onChange={(e) =>
+                          setNewCharacter({
+                            ...newCharacter,
+                            description: e.target.value,
+                          })
+                        }
                       />
                     </div>
                     <div>
@@ -124,7 +165,12 @@ export default function Index() {
                       <Textarea
                         placeholder="Describe how your character behaves and talks..."
                         value={newCharacter.personality}
-                        onChange={(e) => setNewCharacter({ ...newCharacter, personality: e.target.value })}
+                        onChange={(e) =>
+                          setNewCharacter({
+                            ...newCharacter,
+                            personality: e.target.value,
+                          })
+                        }
                       />
                     </div>
                     <div className="flex items-center gap-2">
@@ -132,9 +178,16 @@ export default function Index() {
                         type="checkbox"
                         id="isPublic"
                         checked={newCharacter.isPublic}
-                        onChange={(e) => setNewCharacter({ ...newCharacter, isPublic: e.target.checked })}
+                        onChange={(e) =>
+                          setNewCharacter({
+                            ...newCharacter,
+                            isPublic: e.target.checked,
+                          })
+                        }
                       />
-                      <label htmlFor="isPublic" className="text-sm">Make character publicly available</label>
+                      <label htmlFor="isPublic" className="text-sm">
+                        Make character publicly available
+                      </label>
                     </div>
                     <Button
                       onClick={handleCreateCharacter}
@@ -142,7 +195,7 @@ export default function Index() {
                       className="w-full gradient-primary"
                     >
                       <Zap className="w-4 h-4 mr-2" />
-                      {isCreating ? 'Minting...' : 'Mint Character NFT'}
+                      {isCreating ? "Minting..." : "Mint Character NFT"}
                     </Button>
                   </div>
                 </DialogContent>
@@ -189,48 +242,58 @@ export default function Index() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {characters.filter(c => c.isPublic).map((character) => (
-                <Card key={character.id} className="group hover:scale-105 transition-all duration-300 glass-effect web3-border overflow-hidden">
-                  <div className="relative">
-                    <img
-                      src={character.avatarUrl}
-                      alt={character.name}
-                      className="w-full h-48 object-cover"
-                    />
-                    <div className="absolute top-4 right-4">
-                      <Badge variant="secondary" className="bg-primary/20 text-primary border-primary/30">
-                        Public
-                      </Badge>
-                    </div>
-                  </div>
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-lg">{character.name}</CardTitle>
-                        <CardDescription className="text-sm text-muted-foreground">
-                          by {character.creator}
-                        </CardDescription>
-                      </div>
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <MessageCircle className="w-3 h-3" />
-                        {Math.floor(Math.random() * 2000) + 100}
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                      {character.description}
-                    </p>
-                    <Button 
-                      onClick={() => handleChatWithCharacter(character)}
-                      className="w-full gradient-primary group-hover:web3-glow"
+                {characters
+                  .filter((c) => c.isPublic)
+                  .map((character) => (
+                    <Card
+                      key={character.id}
+                      className="group hover:scale-105 transition-all duration-300 glass-effect web3-border overflow-hidden"
                     >
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                      Start Chat
-                    </Button>
-                  </CardContent>
-                </Card>
-                ))}
+                      <div className="relative">
+                        <img
+                          src={character.avatarUrl}
+                          alt={character.name}
+                          className="w-full h-48 object-cover"
+                        />
+                        <div className="absolute top-4 right-4">
+                          <Badge
+                            variant="secondary"
+                            className="bg-primary/20 text-primary border-primary/30"
+                          >
+                            Public
+                          </Badge>
+                        </div>
+                      </div>
+                      <CardHeader>
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <CardTitle className="text-lg">
+                              {character.name}
+                            </CardTitle>
+                            <CardDescription className="text-sm text-muted-foreground">
+                              by {character.creator}
+                            </CardDescription>
+                          </div>
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <MessageCircle className="w-3 h-3" />
+                            {Math.floor(Math.random() * 2000) + 100}
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                          {character.description}
+                        </p>
+                        <Button
+                          onClick={() => handleChatWithCharacter(character)}
+                          className="w-full gradient-primary group-hover:web3-glow"
+                        >
+                          <MessageCircle className="w-4 h-4 mr-2" />
+                          Start Chat
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
               </div>
             )}
           </TabsContent>
@@ -240,11 +303,16 @@ export default function Index() {
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
                 <Plus className="w-8 h-8 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">No Private Characters Yet</h3>
+              <h3 className="text-xl font-semibold mb-2">
+                No Private Characters Yet
+              </h3>
               <p className="text-muted-foreground mb-6">
                 Create your first AI character NFT to get started
               </p>
-              <Button onClick={() => setIsCreateDialogOpen(true)} className="gradient-primary">
+              <Button
+                onClick={() => setIsCreateDialogOpen(true)}
+                className="gradient-primary"
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Create Character
               </Button>
@@ -258,7 +326,9 @@ export default function Index() {
         <div className="container mx-auto px-4 py-16">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">Why Choose NFT Chat?</h2>
-            <p className="text-muted-foreground">Experience the future of AI interaction on the blockchain</p>
+            <p className="text-muted-foreground">
+              Experience the future of AI interaction on the blockchain
+            </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center space-y-4">
@@ -266,21 +336,29 @@ export default function Index() {
                 <Zap className="w-6 h-6 text-primary" />
               </div>
               <h3 className="text-xl font-semibold">Blockchain Ownership</h3>
-              <p className="text-muted-foreground">Own your AI characters as NFTs on Avalanche blockchain</p>
+              <p className="text-muted-foreground">
+                Own your AI characters as NFTs on Avalanche blockchain
+              </p>
             </div>
             <div className="text-center space-y-4">
               <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
                 <Bot className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold">AI-Powered Conversations</h3>
-              <p className="text-muted-foreground">Each character has unique personality and memory</p>
+              <h3 className="text-xl font-semibold">
+                AI-Powered Conversations
+              </h3>
+              <p className="text-muted-foreground">
+                Each character has unique personality and memory
+              </p>
             </div>
             <div className="text-center space-y-4">
               <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
                 <Sparkles className="w-6 h-6 text-primary" />
               </div>
               <h3 className="text-xl font-semibold">Avatar Generation</h3>
-              <p className="text-muted-foreground">AI-generated avatars using FLUX.1-dev model</p>
+              <p className="text-muted-foreground">
+                AI-generated avatars using FLUX.1-dev model
+              </p>
             </div>
           </div>
         </div>

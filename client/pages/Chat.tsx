@@ -1,15 +1,15 @@
-import { useState, useRef, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { ArrowLeft, Send, Sparkles, Zap, User, Bot } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useCharacters, useChat } from '@/hooks/useWeb3';
-import { WalletConnect } from '@/components/WalletConnect';
+import { useState, useRef, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { ArrowLeft, Send, Sparkles, Zap, User, Bot } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useParams, useNavigate } from "react-router-dom";
+import { useCharacters, useChat } from "@/hooks/useWeb3";
+import { WalletConnect } from "@/components/WalletConnect";
 
 interface Message {
   id: string;
@@ -29,31 +29,34 @@ interface ChatCharacter {
 }
 
 const mockCharacter: ChatCharacter = {
-  id: '1',
-  name: 'Aria the Mystic',
-  description: 'A wise sorceress from the ethereal realm',
-  personality: 'Wise, mysterious, and knowledgeable about ancient magic',
-  avatarUrl: '/placeholder.svg',
-  creator: '0x1234...5678',
+  id: "1",
+  name: "Aria the Mystic",
+  description: "A wise sorceress from the ethereal realm",
+  personality: "Wise, mysterious, and knowledgeable about ancient magic",
+  avatarUrl: "/placeholder.svg",
+  creator: "0x1234...5678",
   isPublic: true,
 };
 
 const mockMessages: Message[] = [
   {
-    id: '1',
-    content: 'Greetings, traveler. I sense you seek knowledge from beyond the veil. What mysteries would you have me illuminate?',
+    id: "1",
+    content:
+      "Greetings, traveler. I sense you seek knowledge from beyond the veil. What mysteries would you have me illuminate?",
     isFromCharacter: true,
     timestamp: new Date(Date.now() - 5 * 60 * 1000),
   },
   {
-    id: '2',
-    content: 'Hello Aria! I\'m curious about ancient magic. Can you tell me about elemental spells?',
+    id: "2",
+    content:
+      "Hello Aria! I'm curious about ancient magic. Can you tell me about elemental spells?",
     isFromCharacter: false,
     timestamp: new Date(Date.now() - 3 * 60 * 1000),
   },
   {
-    id: '3',
-    content: 'Ah, the elemental arts... *traces glowing symbols in the air* The four cardinal elements - Fire, Water, Earth, and Air - each hold profound secrets. Fire burns with passion and transformation, while Water flows with adaptability and healing. Would you learn of their deeper mysteries?',
+    id: "3",
+    content:
+      "Ah, the elemental arts... *traces glowing symbols in the air* The four cardinal elements - Fire, Water, Earth, and Air - each hold profound secrets. Fire burns with passion and transformation, while Water flows with adaptability and healing. Would you learn of their deeper mysteries?",
     isFromCharacter: true,
     timestamp: new Date(Date.now() - 1 * 60 * 1000),
   },
@@ -64,10 +67,11 @@ export default function Chat() {
   const navigate = useNavigate();
   const { characters } = useCharacters();
   const { messages, sendMessage, isLoading } = useChat(characterId!);
-  const [newMessage, setNewMessage] = useState('');
+  const [newMessage, setNewMessage] = useState("");
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  const character = characters.find(c => c.id === characterId) || mockCharacter;
+  const character =
+    characters.find((c) => c.id === characterId) || mockCharacter;
 
   useEffect(() => {
     // Auto-scroll to bottom when new messages arrive
@@ -80,22 +84,22 @@ export default function Chat() {
     if (!newMessage.trim()) return;
 
     await sendMessage(newMessage);
-    setNewMessage('');
+    setNewMessage("");
   };
 
   const generateAIResponse = (userMessage: string): string => {
     // Mock AI response - replace with actual AI integration
     const responses = [
-      '*nods knowingly* Your question reveals a deep curiosity about the arcane arts...',
-      'The ancient texts speak of such matters... *consults ethereal grimoire*',
-      'Interesting... I sense great potential in your inquiry. Let me share what I know...',
-      '*eyes glow with mystical energy* The answer lies within the cosmic patterns...',
+      "*nods knowingly* Your question reveals a deep curiosity about the arcane arts...",
+      "The ancient texts speak of such matters... *consults ethereal grimoire*",
+      "Interesting... I sense great potential in your inquiry. Let me share what I know...",
+      "*eyes glow with mystical energy* The answer lies within the cosmic patterns...",
     ];
     return responses[Math.floor(Math.random() * responses.length)];
   };
 
   const formatTime = (date: Date): string => {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
   return (
@@ -108,7 +112,7 @@ export default function Chat() {
               variant="ghost"
               size="sm"
               className="shrink-0"
-              onClick={() => navigate('/')}
+              onClick={() => navigate("/")}
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
@@ -121,8 +125,13 @@ export default function Chat() {
             </Avatar>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <h1 className="font-semibold text-lg truncate">{character.name}</h1>
-                <Badge variant="secondary" className="bg-primary/20 text-primary border-primary/30">
+                <h1 className="font-semibold text-lg truncate">
+                  {character.name}
+                </h1>
+                <Badge
+                  variant="secondary"
+                  className="bg-primary/20 text-primary border-primary/30"
+                >
                   NFT
                 </Badge>
               </div>
@@ -148,7 +157,7 @@ export default function Chat() {
                 key={message.id}
                 className={cn(
                   "flex gap-3",
-                  message.isFromCharacter ? "justify-start" : "justify-end"
+                  message.isFromCharacter ? "justify-start" : "justify-end",
                 )}
               >
                 {message.isFromCharacter && (
@@ -163,7 +172,7 @@ export default function Chat() {
                 <div
                   className={cn(
                     "max-w-[70%] space-y-2",
-                    message.isFromCharacter ? "order-2" : "order-1"
+                    message.isFromCharacter ? "order-2" : "order-1",
                   )}
                 >
                   <Card
@@ -171,17 +180,19 @@ export default function Chat() {
                       "relative",
                       message.isFromCharacter
                         ? "glass-effect web3-border"
-                        : "bg-primary text-primary-foreground border-primary/30"
+                        : "bg-primary text-primary-foreground border-primary/30",
                     )}
                   >
                     <CardContent className="p-4">
-                      <p className="text-sm leading-relaxed">{message.content}</p>
+                      <p className="text-sm leading-relaxed">
+                        {message.content}
+                      </p>
                     </CardContent>
                   </Card>
                   <div
                     className={cn(
                       "flex items-center gap-2 text-xs text-muted-foreground",
-                      message.isFromCharacter ? "justify-start" : "justify-end"
+                      message.isFromCharacter ? "justify-start" : "justify-end",
                     )}
                   >
                     {message.isFromCharacter && (
@@ -238,7 +249,7 @@ export default function Chat() {
                 placeholder={`Message ${character.name}...`}
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
                 className="pr-12 web3-border"
               />
               <Button
@@ -256,9 +267,7 @@ export default function Chat() {
               <Zap className="w-3 h-3" />
               <span>Powered by Avalanche & AI</span>
             </div>
-            <div>
-              {newMessage.length}/500
-            </div>
+            <div>{newMessage.length}/500</div>
           </div>
         </div>
       </div>
