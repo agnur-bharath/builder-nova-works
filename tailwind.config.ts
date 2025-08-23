@@ -57,6 +57,12 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        web3: {
+          purple: "hsl(266 100% 69%)",
+          cyan: "hsl(197 100% 50%)",
+          dark: "hsl(0 0% 3%)",
+          "dark-card": "hsl(0 0% 6%)",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
