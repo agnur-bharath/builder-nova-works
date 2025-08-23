@@ -106,5 +106,33 @@
 
   body {
     @apply bg-background text-foreground;
+    background-image: radial-gradient(circle at 25% 25%, hsl(266 100% 69% / 0.05) 0%, transparent 50%),
+                      radial-gradient(circle at 75% 75%, hsl(197 100% 50% / 0.05) 0%, transparent 50%);
+  }
+}
+
+@layer utilities {
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+
+  .gradient-secondary {
+    background: var(--gradient-secondary);
+  }
+
+  .web3-glow {
+    box-shadow: var(--web3-glow);
+  }
+
+  .web3-border {
+    border: 1px solid transparent;
+    background: linear-gradient(var(--background), var(--background)) padding-box,
+                var(--gradient-primary) border-box;
+  }
+
+  .glass-effect {
+    backdrop-filter: blur(10px);
+    background: hsl(var(--card) / 0.8);
+    border: 1px solid hsl(var(--border) / 0.5);
   }
 }
