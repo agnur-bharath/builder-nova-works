@@ -104,27 +104,33 @@ export default function Chat() {
       <div className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" className="shrink-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="shrink-0"
+              onClick={() => navigate('/')}
+            >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
             </Button>
             <Avatar className="w-10 h-10 ring-2 ring-primary/20">
-              <AvatarImage src={mockCharacter.avatarUrl} />
+              <AvatarImage src={character.avatarUrl} />
               <AvatarFallback>
                 <Bot className="w-5 h-5" />
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <h1 className="font-semibold text-lg truncate">{mockCharacter.name}</h1>
+                <h1 className="font-semibold text-lg truncate">{character.name}</h1>
                 <Badge variant="secondary" className="bg-primary/20 text-primary border-primary/30">
                   NFT
                 </Badge>
               </div>
               <p className="text-sm text-muted-foreground truncate">
-                {mockCharacter.description}
+                {character.description}
               </p>
             </div>
+            <WalletConnect />
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
               <span className="text-sm text-muted-foreground">Online</span>
@@ -147,7 +153,7 @@ export default function Chat() {
               >
                 {message.isFromCharacter && (
                   <Avatar className="w-8 h-8 ring-2 ring-primary/20 shrink-0">
-                    <AvatarImage src={mockCharacter.avatarUrl} />
+                    <AvatarImage src={character.avatarUrl} />
                     <AvatarFallback>
                       <Bot className="w-4 h-4" />
                     </AvatarFallback>
@@ -195,10 +201,10 @@ export default function Chat() {
               </div>
             ))}
 
-            {isTyping && (
+            {isLoading && (
               <div className="flex gap-3 justify-start">
                 <Avatar className="w-8 h-8 ring-2 ring-primary/20 shrink-0">
-                  <AvatarImage src={mockCharacter.avatarUrl} />
+                  <AvatarImage src={character.avatarUrl} />
                   <AvatarFallback>
                     <Bot className="w-4 h-4" />
                   </AvatarFallback>
@@ -212,7 +218,7 @@ export default function Chat() {
                         <div className="w-2 h-2 bg-primary rounded-full animate-bounce delay-150" />
                       </div>
                       <span className="text-sm text-muted-foreground">
-                        {mockCharacter.name} is typing...
+                        {character.name} is typing...
                       </span>
                     </div>
                   </CardContent>
@@ -229,7 +235,7 @@ export default function Chat() {
           <div className="flex gap-3">
             <div className="flex-1 relative">
               <Input
-                placeholder={`Message ${mockCharacter.name}...`}
+                placeholder={`Message ${character.name}...`}
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
@@ -238,7 +244,7 @@ export default function Chat() {
               <Button
                 size="sm"
                 onClick={handleSendMessage}
-                disabled={!newMessage.trim() || isTyping}
+                disabled={!newMessage.trim() || isLoading}
                 className="absolute right-1 top-1 bottom-1 gradient-primary hover:web3-glow"
               >
                 <Send className="w-4 h-4" />
