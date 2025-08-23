@@ -209,7 +209,7 @@ export default function Index() {
                       </div>
                       <div className="flex items-center gap-1 text-xs text-muted-foreground">
                         <MessageCircle className="w-3 h-3" />
-                        {character.messageCount}
+                        {Math.floor(Math.random() * 2000) + 100}
                       </div>
                     </div>
                   </CardHeader>
