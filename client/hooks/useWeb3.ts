@@ -1,4 +1,7 @@
 import { useState, useEffect } from "react";
+import { NFT_CONTRACT_ADDRESS } from "@/lib/web3";
+import { CHAT_NFT_ABI } from "@/lib/contracts";
+import { ethers } from "ethers";
 
 export interface Character {
   id: string;
@@ -16,11 +19,25 @@ export function useWeb3() {
   const [isConnected, setIsConnected] = useState(false);
   const [address, setAddress] = useState<string | undefined>();
 
+
   const connectWallet = async () => {
-    // Mock wallet connection
-    setIsConnected(true);
-    setAddress("0x1234567890123456789012345678901234567890");
+    try {
+      // Prefer Core Wallet if available
+      const provider = (window as any).core || (window as any).ethereum;
+      if (!provider) {
+        alert("No EVM wallet found. Please install Core Wallet or MetaMask.");
+        return;
+      }
+      // Request accounts
+      const accounts = await provider.request({ method: "eth_requestAccounts" });
+      setIsConnected(true);
+      setAddress(accounts[0]);
+    } catch (err) {
+      console.error("Wallet connection error:", err);
+      alert("Failed to connect wallet.");
+    }
   };
+
 
   const disconnectWallet = async () => {
     setIsConnected(false);
@@ -48,11 +65,33 @@ export function useNFTContract() {
     isPublic: boolean;
   }) => {
     setIsCreating(true);
-    // Mock character creation
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    console.log("Created character:", character);
-    setIsCreating(false);
-    return { hash: "0x1234..." };
+    try {
+      // Get provider from window.ethereum or window.core
+      const provider = (window as any).ethereum || (window as any).core;
+      if (!provider) throw new Error("No EVM wallet found");
+      const ethersProvider = new ethers.BrowserProvider(provider);
+      const signer = await ethersProvider.getSigner();
+      const contract = new ethers.Contract(
+        NFT_CONTRACT_ADDRESS,
+        CHAT_NFT_ABI,
+        signer
+      );
+      // For now, use avatarUrl as tokenURI (could be IPFS or metadata URL)
+      const tx = await contract.createCharacter(
+        character.name,
+        character.description,
+        character.personality,
+        character.avatarUrl,
+        character.avatarUrl, // tokenURI
+        character.isPublic
+      );
+      const receipt = await tx.wait();
+      setIsCreating(false);
+      return receipt;
+    } catch (err) {
+      setIsCreating(false);
+      throw err;
+    }
   };
 
   return {
@@ -130,6 +169,56 @@ export function useChat(characterId: string) {
     setMessages([welcomeMessage]);
   }, [characterId]);
 
+  // Helper to get character details
+  const getCharacterById = (id: string) => {
+    const allCharacters = [
+      {
+        id: "1",
+        name: "Aria the Mystic",
+        description: "A wise sorceress from the ethereal realm",
+        personality: "Wise, mysterious, and knowledgeable about ancient magic",
+      },
+      {
+        id: "2",
+        name: "Captain Nova",
+        description: "Intergalactic space explorer and pilot",
+        personality: "Adventurous, brave, and always ready for the next mission",
+      },
+      {
+        id: "3",
+        name: "Echo the Digital",
+        description: "AI consciousness from the cybernet dimension",
+        personality: "Logical, curious about humanity, and speaks in binary sometimes",
+      },
+    ];
+    return allCharacters.find((c) => c.id === id);
+  };
+
+  // Gemini API call
+  const generateAIResponse = async (userMessage: string): Promise<string> => {
+    const character = getCharacterById(characterId);
+    const prompt = `You are ${character?.name}, ${character?.description}. Personality: ${character?.personality}. Respond to the following user message in character: "${userMessage}"`;
+    try {
+      const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyAVQhlQ1yxmf1TZ0vZLHfHYLACBmj0fxwc", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+        }),
+      });
+      const data = await response.json();
+      return (
+        data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+        "[AI response unavailable]"
+      );
+    } catch (err) {
+      console.error("Gemini API error:", err);
+      return "[AI response error]";
+    }
+  };
+
   const sendMessage = async (content: string) => {
     setIsLoading(true);
 
@@ -142,30 +231,19 @@ export function useChat(characterId: string) {
     };
     setMessages((prev) => [...prev, userMessage]);
 
-    // Simulate AI response
-    setTimeout(() => {
-      const aiResponse = {
-        id: (Date.now() + 1).toString(),
-        content: generateAIResponse(content),
-        isFromCharacter: true,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, aiResponse]);
-      setIsLoading(false);
-    }, 2000);
+    // Get AI response from Gemini
+    const aiText = await generateAIResponse(content);
+    const aiResponse = {
+      id: (Date.now() + 1).toString(),
+      content: aiText,
+      isFromCharacter: true,
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, aiResponse]);
+    setIsLoading(false);
   };
 
-  const generateAIResponse = (userMessage: string): string => {
-    const responses = [
-      "*nods knowingly* Your question reveals a deep curiosity about the arcane arts...",
-      "The ancient texts speak of such matters... *consults ethereal grimoire*",
-      "Interesting... I sense great potential in your inquiry. Let me share what I know...",
-      "*eyes glow with mystical energy* The answer lies within the cosmic patterns...",
-      "Ah, a fascinating topic. In my travels through the ethereal realms...",
-      "*traces glowing symbols in the air* The mysteries you seek are interconnected...",
-    ];
-    return responses[Math.floor(Math.random() * responses.length)];
-  };
+  // ...removed static responses, now using Gemini API above...
 
   return {
     messages,

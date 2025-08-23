@@ -1,25 +1,8 @@
-import { createConfig, http } from "wagmi";
-import { avalanche, avalancheFuji } from "wagmi/chains";
-import { injected, walletConnect } from "wagmi/connectors";
 
-// Avalanche network configuration
-export const avalancheConfig = createConfig({
-  chains: [avalanche, avalancheFuji],
-  connectors: [
-    injected(),
-    walletConnect({
-      projectId: process.env.VITE_WALLET_CONNECT_PROJECT_ID || "",
-    }),
-  ],
-  transports: {
-    [avalanche.id]: http(),
-    [avalancheFuji.id]: http(),
-  },
-});
 
 // Contract addresses for NFT functionality
-export const NFT_CONTRACT_ADDRESS = "0x..."; // To be deployed
-export const CHAT_CONTRACT_ADDRESS = "0x..."; // To be deployed
+export const NFT_CONTRACT_ADDRESS = "0x2BA558Db9F0F42646a2D99140389C2659912A5C7"; // Deployed ChatNFT
+export const CHAT_CONTRACT_ADDRESS = "0x123fEc398f6F468766845A32Abfb5Ef500912D1e"; // Deployed ChatMessages
 
 // Avalanche network details
 export const AVALANCHE_MAINNET = {
