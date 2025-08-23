@@ -136,9 +136,13 @@ export default function Index() {
                       />
                       <label htmlFor="isPublic" className="text-sm">Make character publicly available</label>
                     </div>
-                    <Button onClick={handleCreateCharacter} className="w-full gradient-primary">
+                    <Button
+                      onClick={handleCreateCharacter}
+                      disabled={isCreating}
+                      className="w-full gradient-primary"
+                    >
                       <Zap className="w-4 h-4 mr-2" />
-                      Mint Character NFT
+                      {isCreating ? 'Minting...' : 'Mint Character NFT'}
                     </Button>
                   </div>
                 </DialogContent>
