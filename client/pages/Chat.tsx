@@ -7,6 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ArrowLeft, Send, Sparkles, Zap, User, Bot } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useCharacters, useChat } from '@/hooks/useWeb3';
+import { WalletConnect } from '@/components/WalletConnect';
 
 interface Message {
   id: string;
