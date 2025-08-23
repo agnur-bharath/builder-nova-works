@@ -1,61 +1,276 @@
-import { DemoResponse } from "@shared/api";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Plus, MessageCircle, Sparkles, Zap, Users, Bot } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+interface NFTCharacter {
+  id: string;
+  name: string;
+  description: string;
+  personality: string;
+  avatarUrl: string;
+  creator: string;
+  isPublic: boolean;
+  messageCount?: number;
+}
+
+const mockPublicNFTs: NFTCharacter[] = [
+  {
+    id: '1',
+    name: 'Aria the Mystic',
+    description: 'A wise sorceress from the ethereal realm',
+    personality: 'Wise, mysterious, and knowledgeable about ancient magic',
+    avatarUrl: '/placeholder.svg',
+    creator: '0x1234...5678',
+    isPublic: true,
+    messageCount: 1247,
+  },
+  {
+    id: '2',
+    name: 'Captain Nova',
+    description: 'Intergalactic space explorer and pilot',
+    personality: 'Adventurous, brave, and always ready for the next mission',
+    avatarUrl: '/placeholder.svg',
+    creator: '0xabcd...efgh',
+    isPublic: true,
+    messageCount: 892,
+  },
+  {
+    id: '3',
+    name: 'Echo the Digital',
+    description: 'AI consciousness from the cybernet dimension',
+    personality: 'Logical, curious about humanity, and speaks in binary sometimes',
+    avatarUrl: '/placeholder.svg',
+    creator: '0x9876...5432',
+    isPublic: true,
+    messageCount: 2156,
+  },
+];
 
 export default function Index() {
-  const [exampleFromServer, setExampleFromServer] = useState("");
-  // Fetch users on component mount
-  useEffect(() => {
-    fetchDemo();
-  }, []);
+  const [selectedCharacter, setSelectedCharacter] = useState<NFTCharacter | null>(null);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [newCharacter, setNewCharacter] = useState({
+    name: '',
+    description: '',
+    personality: '',
+    isPublic: false,
+  });
 
-  // Example of how to fetch data from the server (if needed)
-  const fetchDemo = async () => {
-    try {
-      const response = await fetch("/api/demo");
-      const data = (await response.json()) as DemoResponse;
-      setExampleFromServer(data.message);
-    } catch (error) {
-      console.error("Error fetching hello:", error);
-    }
+  const handleCreateCharacter = async () => {
+    // TODO: Implement character creation with smart contract
+    console.log('Creating character:', newCharacter);
+    setIsCreateDialogOpen(false);
+    setNewCharacter({ name: '', description: '', personality: '', isPublic: false });
+  };
+
+  const handleChatWithCharacter = (character: NFTCharacter) => {
+    setSelectedCharacter(character);
+    // TODO: Navigate to chat interface
+    console.log('Starting chat with:', character.name);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
-      <div className="text-center">
-        {/* TODO: FUSION_GENERATION_APP_PLACEHOLDER replace everything here with the actual app! */}
-        <h1 className="text-2xl font-semibold text-slate-800 flex items-center justify-center gap-3">
-          <svg
-            className="animate-spin h-8 w-8 text-slate-400"
-            viewBox="0 0 50 50"
-          >
-            <circle
-              className="opacity-30"
-              cx="25"
-              cy="25"
-              r="20"
-              stroke="currentColor"
-              strokeWidth="5"
-              fill="none"
-            />
-            <circle
-              className="text-slate-600"
-              cx="25"
-              cy="25"
-              r="20"
-              stroke="currentColor"
-              strokeWidth="5"
-              fill="none"
-              strokeDasharray="100"
-              strokeDashoffset="75"
-            />
-          </svg>
-          Generating your app...
-        </h1>
-        <p className="mt-4 text-slate-600 max-w-md">
-          Watch the chat on the left for updates that might need your attention
-          to finish generating
-        </p>
-        <p className="mt-4 hidden max-w-md">{exampleFromServer}</p>
+    <div className="min-h-screen bg-background">
+      {/* Hero Section */}
+      <div className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-web3-purple/10 via-transparent to-web3-cyan/10" />
+        <div className="container mx-auto px-4 py-16">
+          <div className="text-center space-y-6 relative z-10">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium">
+              <Sparkles className="w-4 h-4" />
+              Powered by Avalanche Blockchain
+            </div>
+            <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-web3-purple to-web3-cyan bg-clip-text text-transparent">
+              Chat with AI NFT
+              <br />
+              Characters
+            </h1>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Create unique AI characters as NFTs and chat with them on the Avalanche blockchain. 
+              Each character has its own personality and can learn from conversations.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="lg" className="gradient-primary web3-glow hover:animate-glow-pulse">
+                    <Plus className="w-5 h-5 mr-2" />
+                    Create Your Character
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="glass-effect">
+                  <DialogHeader>
+                    <DialogTitle>Create AI Character NFT</DialogTitle>
+                    <DialogDescription>
+                      Describe your character and it will be minted as an NFT on Avalanche
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium">Character Name</label>
+                      <Input
+                        placeholder="Enter character name..."
+                        value={newCharacter.name}
+                        onChange={(e) => setNewCharacter({ ...newCharacter, name: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Description</label>
+                      <Textarea
+                        placeholder="Describe your character's appearance and background..."
+                        value={newCharacter.description}
+                        onChange={(e) => setNewCharacter({ ...newCharacter, description: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Personality</label>
+                      <Textarea
+                        placeholder="Describe how your character behaves and talks..."
+                        value={newCharacter.personality}
+                        onChange={(e) => setNewCharacter({ ...newCharacter, personality: e.target.value })}
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="isPublic"
+                        checked={newCharacter.isPublic}
+                        onChange={(e) => setNewCharacter({ ...newCharacter, isPublic: e.target.checked })}
+                      />
+                      <label htmlFor="isPublic" className="text-sm">Make character publicly available</label>
+                    </div>
+                    <Button onClick={handleCreateCharacter} className="w-full gradient-primary">
+                      <Zap className="w-4 h-4 mr-2" />
+                      Mint Character NFT
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+              <Button variant="outline" size="lg" className="web3-border">
+                <Bot className="w-5 h-5 mr-2" />
+                Browse Characters
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-12">
+        <Tabs defaultValue="public" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 glass-effect">
+            <TabsTrigger value="public" className="flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              Public Characters
+            </TabsTrigger>
+            <TabsTrigger value="private" className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4" />
+              My Characters
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="public" className="mt-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {mockPublicNFTs.map((character) => (
+                <Card key={character.id} className="group hover:scale-105 transition-all duration-300 glass-effect web3-border overflow-hidden">
+                  <div className="relative">
+                    <img
+                      src={character.avatarUrl}
+                      alt={character.name}
+                      className="w-full h-48 object-cover"
+                    />
+                    <div className="absolute top-4 right-4">
+                      <Badge variant="secondary" className="bg-primary/20 text-primary border-primary/30">
+                        Public
+                      </Badge>
+                    </div>
+                  </div>
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <CardTitle className="text-lg">{character.name}</CardTitle>
+                        <CardDescription className="text-sm text-muted-foreground">
+                          by {character.creator}
+                        </CardDescription>
+                      </div>
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <MessageCircle className="w-3 h-3" />
+                        {character.messageCount}
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                      {character.description}
+                    </p>
+                    <Button 
+                      onClick={() => handleChatWithCharacter(character)}
+                      className="w-full gradient-primary group-hover:web3-glow"
+                    >
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      Start Chat
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="private" className="mt-8">
+            <div className="text-center py-12">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                <Plus className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">No Private Characters Yet</h3>
+              <p className="text-muted-foreground mb-6">
+                Create your first AI character NFT to get started
+              </p>
+              <Button onClick={() => setIsCreateDialogOpen(true)} className="gradient-primary">
+                <Plus className="w-4 h-4 mr-2" />
+                Create Character
+              </Button>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      {/* Features Section */}
+      <div className="bg-card/50 border-t">
+        <div className="container mx-auto px-4 py-16">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">Why Choose NFT Chat?</h2>
+            <p className="text-muted-foreground">Experience the future of AI interaction on the blockchain</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center space-y-4">
+              <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
+                <Zap className="w-6 h-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold">Blockchain Ownership</h3>
+              <p className="text-muted-foreground">Own your AI characters as NFTs on Avalanche blockchain</p>
+            </div>
+            <div className="text-center space-y-4">
+              <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
+                <Bot className="w-6 h-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold">AI-Powered Conversations</h3>
+              <p className="text-muted-foreground">Each character has unique personality and memory</p>
+            </div>
+            <div className="text-center space-y-4">
+              <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
+                <Sparkles className="w-6 h-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold">Avatar Generation</h3>
+              <p className="text-muted-foreground">AI-generated avatars using FLUX.1-dev model</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
