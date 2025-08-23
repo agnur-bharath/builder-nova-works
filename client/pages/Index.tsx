@@ -209,8 +209,25 @@ export default function Index() {
           </TabsList>
 
           <TabsContent value="public" className="mt-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {mockPublicNFTs.map((character) => (
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[...Array(6)].map((_, i) => (
+                  <Card key={i} className="glass-effect animate-pulse">
+                    <div className="h-48 bg-muted rounded-t-lg" />
+                    <CardHeader>
+                      <div className="h-4 bg-muted rounded w-3/4" />
+                      <div className="h-3 bg-muted rounded w-1/2" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-3 bg-muted rounded mb-4" />
+                      <div className="h-8 bg-muted rounded" />
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {characters.filter(c => c.isPublic).map((character) => (
                 <Card key={character.id} className="group hover:scale-105 transition-all duration-300 glass-effect web3-border overflow-hidden">
                   <div className="relative">
                     <img
@@ -251,8 +268,9 @@ export default function Index() {
                     </Button>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="private" className="mt-8">
