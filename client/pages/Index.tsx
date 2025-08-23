@@ -13,49 +13,7 @@ import { useCharacters, useNFTContract } from '@/hooks/useWeb3';
 import { avatarGenerator } from '@/lib/avatar-generator';
 import { useNavigate } from 'react-router-dom';
 
-interface NFTCharacter {
-  id: string;
-  name: string;
-  description: string;
-  personality: string;
-  avatarUrl: string;
-  creator: string;
-  isPublic: boolean;
-  messageCount?: number;
-}
-
-const mockPublicNFTs: NFTCharacter[] = [
-  {
-    id: '1',
-    name: 'Aria the Mystic',
-    description: 'A wise sorceress from the ethereal realm',
-    personality: 'Wise, mysterious, and knowledgeable about ancient magic',
-    avatarUrl: '/placeholder.svg',
-    creator: '0x1234...5678',
-    isPublic: true,
-    messageCount: 1247,
-  },
-  {
-    id: '2',
-    name: 'Captain Nova',
-    description: 'Intergalactic space explorer and pilot',
-    personality: 'Adventurous, brave, and always ready for the next mission',
-    avatarUrl: '/placeholder.svg',
-    creator: '0xabcd...efgh',
-    isPublic: true,
-    messageCount: 892,
-  },
-  {
-    id: '3',
-    name: 'Echo the Digital',
-    description: 'AI consciousness from the cybernet dimension',
-    personality: 'Logical, curious about humanity, and speaks in binary sometimes',
-    avatarUrl: '/placeholder.svg',
-    creator: '0x9876...5432',
-    isPublic: true,
-    messageCount: 2156,
-  },
-];
+// NFTCharacter interface is now imported from useWeb3 hook
 
 export default function Index() {
   const navigate = useNavigate();
