@@ -31,26 +31,63 @@ export class AvatarGenerator {
 
   async generateAvatar(params: AvatarGenerationParams): Promise<string | null> {
     try {
-      // Mock avatar generation - in a real implementation this would call the Hugging Face API
-      console.log("Generating avatar with params:", params);
-
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Return a placeholder image for now
-      // In a real implementation, this would return the generated image URL
-      return "/placeholder.svg";
+      console.log("Starting avatar generation request with params:", params);
+      
+      // Call Flask API for avatar generation
+      const response = await fetch("http://localhost:5001/generate-avatar", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Accept": "image/png"
+        },
+        mode: "cors",
+        cache: "no-cache",
+        credentials: "omit",
+        body: JSON.stringify({ 
+          description: params.prompt,
+          width: params.width || 512,
+          height: params.height || 512,
+          seed: params.seed,
+          randomizeSeed: params.randomizeSeed
+        }),
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("API Error Response:", errorText);
+        throw new Error(`Avatar API error: ${response.status} - ${errorText}`);
+      }
+      
+      console.log("Received successful response from API");
+      const blob = await response.blob();
+      console.log("Received blob:", blob.type, blob.size);
+      
+      // Convert blob to data URL
+      return await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          console.log("Successfully converted image to data URL");
+          resolve(reader.result as string);
+        };
+        reader.onerror = (error) => {
+          console.error("Error reading blob:", error);
+          reject(error);
+        };
+        reader.readAsDataURL(blob);
+      });
     } catch (error) {
       console.error("Avatar generation failed:", error);
-      throw error;
+      return "/placeholder.svg";
     }
   }
 
   // Generate avatar based on character description
   async generateCharacterAvatar(description: string): Promise<string | null> {
-    const enhancedPrompt = `High-quality digital art portrait of ${description}, 
-    fantasy character, detailed face, expressive eyes, professional artwork, 
-    8k resolution, trending on artstation`;
+    const enhancedPrompt = `Create a high-quality portrait illustration of ${description}. 
+    Style: Digital fantasy art, detailed anime-inspired character art.
+    Must include: Detailed facial features, expressive eyes, high-quality rendering.
+    Composition: Head and shoulders portrait view, centered, clear face visibility.
+    Art style: Professional digital artwork, vibrant colors, fantasy lighting effects.
+    Quality: 8k resolution, sharp details, professional finish, trending on artstation`;
 
     console.log("Generating character avatar for:", enhancedPrompt);
 
@@ -59,6 +96,8 @@ export class AvatarGenerator {
       randomizeSeed: true,
       width: 512,
       height: 512,
+      guidanceScale: 7.5,
+      numInferenceSteps: 50,
     });
   }
 

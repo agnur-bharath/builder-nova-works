@@ -19,55 +19,117 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, MessageCircle, Sparkles, Zap, Users, Bot } from "lucide-react";
+import { Plus, MessageCircle, Sparkles, Zap, Users, Bot, Activity, Server, Shield, Globe } from "lucide-react";
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
 import { WalletConnect } from "@/components/WalletConnect";
-import { useCharacters, useNFTContract } from "@/hooks/useWeb3";
+import { useCharacters, useNFTContract, useWeb3 } from "@/hooks/useWeb3";
+import { useToast } from "@/components/ui/use-toast";
 import { avatarGenerator } from "@/lib/avatar-generator";
+import { uploadImageToIPFS, uploadMetadataToIPFS } from "@/lib/ipfs";
 import { useNavigate } from "react-router-dom";
 
-// NFTCharacter interface is now imported from useWeb3 hook
+import type { Character } from "@/hooks/useWeb3";
 
 export default function Index() {
   const navigate = useNavigate();
   const { characters, loading } = useCharacters();
   const { createCharacter, isCreating } = useNFTContract();
+  const { address, isConnected, connectWallet } = useWeb3();
+  const { toast } = useToast();
   const [selectedCharacter, setSelectedCharacter] =
-    useState<NFTCharacter | null>(null);
+    useState<Character | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newCharacter, setNewCharacter] = useState({
     name: "",
     description: "",
     personality: "",
     isPublic: false,
+    useCustomImage: false,
+    customImagePath: "",
   });
 
-  const handleCreateCharacter = async () => {
-    try {
-      // Generate avatar for the character
-      const avatarUrl = await avatarGenerator.generateCharacterAvatar(
-        newCharacter.description,
-      );
+  // Hard-coded override for known public characters.
+  // Replace these with your actual public/IPFS URLs or file paths in /public.
+  const HARDCODED_AVATARS: Record<string, string> = {
+    dog: "/images/dog.png",
+    luffy: "/images/luffy.png",
+    zoro: "/images/zoro.png",
+    itachi: "/images/itachi.png",
+    elon: "/images/Elon.png",
+  };
 
-      // Create character NFT on blockchain
+  const handleCreateCharacter = async () => {
+    if (!isConnected || !address) {
+      toast({
+        title: "Wallet not connected",
+        description: "Please connect your wallet before minting.",
+        variant: "destructive",
+      });
+      await connectWallet();
+      return;
+    }
+    try {
+      let avatarIpfsUrl: string;
+      
+      if (newCharacter.useCustomImage && newCharacter.customImagePath) {
+        // Use custom image from public folder
+        toast({ title: "Using custom image..." });
+        avatarIpfsUrl = newCharacter.customImagePath;
+      } else {
+        // Generate AI avatar
+        toast({ title: "Generating avatar..." });
+        const avatarDataUrl = await avatarGenerator.generateCharacterAvatar(
+          newCharacter.description
+        );
+        if (!avatarDataUrl) throw new Error("Avatar generation failed");
+        toast({ title: "Uploading avatar to IPFS..." });
+        avatarIpfsUrl = await uploadImageToIPFS(avatarDataUrl);
+        if (!avatarIpfsUrl) throw new Error("Avatar IPFS upload failed");
+      }
+      
+      toast({ title: "Uploading metadata to IPFS..." });
+      const metadata = {
+        name: newCharacter.name,
+        description: newCharacter.description,
+        personality: newCharacter.personality,
+        image: avatarIpfsUrl,
+        isPublic: newCharacter.isPublic,
+      };
+      const metadataIpfsUrl = await uploadMetadataToIPFS(metadata);
+      if (!metadataIpfsUrl) throw new Error("Metadata IPFS upload failed");
+      toast({ title: "Sending transaction to mint NFT..." });
       await createCharacter({
         ...newCharacter,
-        avatarUrl: avatarUrl || "/placeholder.svg",
+        avatarUrl: avatarIpfsUrl,
+        tokenURI: metadataIpfsUrl,
       });
-
+      toast({ title: "Character minted!", description: "Your NFT is on-chain." });
       setIsCreateDialogOpen(false);
       setNewCharacter({
         name: "",
         description: "",
         personality: "",
         isPublic: false,
+        useCustomImage: false,
+        customImagePath: "",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to create character:", error);
+      toast({
+        title: "Minting failed",
+        description: error?.message || String(error),
+        variant: "destructive",
+      });
     }
   };
 
-  const handleChatWithCharacter = (character: NFTCharacter) => {
+  const handleChatWithCharacter = (character: Character) => {
     navigate(`/chat/${character.id}`);
   };
 
@@ -173,21 +235,75 @@ export default function Index() {
                         }
                       />
                     </div>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        id="isPublic"
-                        checked={newCharacter.isPublic}
-                        onChange={(e) =>
-                          setNewCharacter({
-                            ...newCharacter,
-                            isPublic: e.target.checked,
-                          })
-                        }
-                      />
-                      <label htmlFor="isPublic" className="text-sm">
-                        Make character publicly available
-                      </label>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="useCustomImage"
+                          checked={newCharacter.useCustomImage}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              // Pre-fill Elon Musk details when custom image is selected
+                              setNewCharacter({
+                                ...newCharacter,
+                                useCustomImage: true,
+                                customImagePath: "/images/Elon.png",
+                                name: "Elon Musk",
+                                description: "Visionary entrepreneur and CEO of Tesla, SpaceX, and X (formerly Twitter). Known for revolutionizing electric vehicles, space exploration, and AI development. A forward-thinking innovator focused on sustainable energy and interplanetary colonization.",
+                                personality: "Innovative, ambitious, and slightly eccentric. Uses technical jargon and references space, AI, electric vehicles, and the future. Optimistic about humanity's potential, occasionally humorous and direct. Passionate about solving global challenges through technology."
+                              });
+                            } else {
+                              // Clear details when custom image is unchecked
+                              setNewCharacter({
+                                ...newCharacter,
+                                useCustomImage: false,
+                                customImagePath: "",
+                                name: "",
+                                description: "",
+                                personality: ""
+                              });
+                            }
+                          }}
+                        />
+                        <label htmlFor="useCustomImage" className="text-sm">
+                          Use Elon Musk image (Elon.png) - Auto-fill details
+                        </label>
+                      </div>
+                      
+                      {newCharacter.useCustomImage && (
+                        <div className="p-3 bg-muted/50 rounded-lg border">
+                          <div className="flex items-center gap-3">
+                            <img 
+                              src="/images/Elon.png" 
+                              alt="Elon Musk" 
+                              className="w-16 h-16 rounded-lg object-cover"
+                            />
+                            <div>
+                              <p className="text-sm font-medium">Elon Musk Character</p>
+                              <p className="text-xs text-muted-foreground">
+                                This will use the Elon.png image from your public folder
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="isPublic"
+                          checked={newCharacter.isPublic}
+                          onChange={(e) =>
+                            setNewCharacter({
+                              ...newCharacter,
+                              isPublic: e.target.checked,
+                            })
+                          }
+                        />
+                        <label htmlFor="isPublic" className="text-sm">
+                          Make character publicly available
+                        </label>
+                      </div>
                     </div>
                     <Button
                       onClick={handleCreateCharacter}
@@ -205,6 +321,24 @@ export default function Index() {
                 Browse Characters
               </Button>
             </div>
+          </div>
+        </div>
+
+            
+      </div>
+
+  {/* Tokenomics and FAQ moved below features per request - placeholder here */}
+
+      {/* CTA Banner */}
+      <div className="container mx-auto px-4 py-12">
+        <div className="gradient-primary rounded-xl p-8 text-center text-white web3-glow">
+          <h3 className="text-3xl font-bold mb-2">Create your legend on Avalanche</h3>
+          <p className="mb-6">Mint AI-powered characters as NFTs, build communities, and share stories.</p>
+          <div className="flex items-center justify-center gap-4">
+            <Button className="bg-white text-black" onClick={() => setIsCreateDialogOpen(true)}>
+              Create Character
+            </Button>
+            <Button variant="outline">Join Discord</Button>
           </div>
         </div>
       </div>
@@ -225,10 +359,10 @@ export default function Index() {
 
           <TabsContent value="public" className="mt-8">
             {loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[...Array(6)].map((_, i) => (
-                  <Card key={i} className="glass-effect animate-pulse">
-                    <div className="h-48 bg-muted rounded-t-lg" />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[...Array(8)].map((_, i) => (
+                  <Card key={i} className="glass-effect animate-pulse p-0">
+                    <div className="h-80 md:h-96 lg:h-96 bg-muted rounded-t-lg" />
                     <CardHeader>
                       <div className="h-4 bg-muted rounded w-3/4" />
                       <div className="h-3 bg-muted rounded w-1/2" />
@@ -241,19 +375,22 @@ export default function Index() {
                 ))}
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {characters
                   .filter((c) => c.isPublic)
-                  .map((character) => (
+                  .map((character) => {
+                    const key = (character.name || "").toLowerCase();
+                    const avatarSrc = HARDCODED_AVATARS[key] ?? character.avatarUrl;
+                    return (
                     <Card
                       key={character.id}
-                      className="group hover:scale-105 transition-all duration-300 glass-effect web3-border overflow-hidden"
+                      className="group hover:scale-105 transition-all duration-300 glass-effect web3-border overflow-hidden p-0"
                     >
                       <div className="relative">
                         <img
-                          src={character.avatarUrl}
+                          src={avatarSrc}
                           alt={character.name}
-                          className="w-full h-48 object-cover"
+                          className="w-full h-80 md:h-96 lg:h-96 object-cover object-top"
                         />
                         <div className="absolute top-4 right-4">
                           <Badge
@@ -264,59 +401,117 @@ export default function Index() {
                           </Badge>
                         </div>
                       </div>
-                      <CardHeader>
+                      <div className="p-3">
                         <div className="flex items-start justify-between">
                           <div>
-                            <CardTitle className="text-lg">
-                              {character.name}
-                            </CardTitle>
-                            <CardDescription className="text-sm text-muted-foreground">
-                              by {character.creator}
-                            </CardDescription>
+                            <div className="text-lg font-semibold">{character.name}</div>
+                            <div className="text-xs text-muted-foreground">by {character.creator}</div>
                           </div>
                           <div className="flex items-center gap-1 text-xs text-muted-foreground">
                             <MessageCircle className="w-3 h-3" />
                             {Math.floor(Math.random() * 2000) + 100}
                           </div>
                         </div>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                        <p className="text-xs text-muted-foreground mt-2 mb-3 line-clamp-2">
                           {character.description}
                         </p>
                         <Button
                           onClick={() => handleChatWithCharacter(character)}
-                          className="w-full gradient-primary group-hover:web3-glow"
+                          className="w-full gradient-primary group-hover:web3-glow py-2 text-sm"
                         >
                           <MessageCircle className="w-4 h-4 mr-2" />
                           Start Chat
                         </Button>
-                      </CardContent>
+                      </div>
                     </Card>
-                  ))}
+                    );
+                  })}
               </div>
             )}
           </TabsContent>
 
           <TabsContent value="private" className="mt-8">
-            <div className="text-center py-12">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
-                <Plus className="w-8 h-8 text-primary" />
+            {!isConnected ? (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Bot className="w-8 h-8 text-primary" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Connect Wallet to View Private Characters</h3>
+                <p className="text-muted-foreground mb-6">Connect your wallet to see your private NFT characters</p>
+                <Button onClick={connectWallet} className="gradient-primary">
+                  <Bot className="w-4 h-4 mr-2" />
+                  Connect Wallet
+                </Button>
               </div>
-              <h3 className="text-xl font-semibold mb-2">
-                No Private Characters Yet
-              </h3>
-              <p className="text-muted-foreground mb-6">
-                Create your first AI character NFT to get started
-              </p>
-              <Button
-                onClick={() => setIsCreateDialogOpen(true)}
-                className="gradient-primary"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Create Character
-              </Button>
-            </div>
+            ) : characters.filter(c => !c.isPublic && c.creator.toLowerCase() === address?.toLowerCase()).length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Plus className="w-8 h-8 text-primary" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">No Private Characters Yet</h3>
+                <p className="text-muted-foreground mb-6">Create your first private AI character NFT to get started</p>
+                <Button
+                  onClick={() => setIsCreateDialogOpen(true)}
+                  className="gradient-primary"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Character
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {characters
+                  .filter((c) => !c.isPublic && c.creator.toLowerCase() === address?.toLowerCase())
+                  .map((character) => {
+                    const key = (character.name || "").toLowerCase();
+                    const avatarSrc = HARDCODED_AVATARS[key] ?? character.avatarUrl;
+                    return (
+                    <Card
+                      key={character.id}
+                      className="group hover:scale-105 transition-all duration-300 glass-effect web3-border overflow-hidden p-0"
+                    >
+                      <div className="relative">
+                        <img
+                          src={avatarSrc}
+                          alt={character.name}
+                          className="w-full h-80 md:h-96 lg:h-96 object-cover object-top"
+                        />
+                        <div className="absolute top-4 right-4">
+                          <Badge
+                            variant="secondary"
+                            className="bg-amber-500/20 text-amber-600 border-amber-500/30"
+                          >
+                            Private
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="p-3">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <div className="text-lg font-semibold">{character.name}</div>
+                            <div className="text-xs text-muted-foreground">by {character.creator}</div>
+                          </div>
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <MessageCircle className="w-3 h-3" />
+                            Private
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-2 mb-3 line-clamp-2">
+                          {character.description}
+                        </p>
+                        <Button
+                          onClick={() => handleChatWithCharacter(character)}
+                          className="w-full gradient-primary group-hover:web3-glow py-2 text-sm"
+                        >
+                          <MessageCircle className="w-4 h-4 mr-2" />
+                          Start Chat
+                        </Button>
+                      </div>
+                    </Card>
+                    );
+                  })}
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>
@@ -363,6 +558,104 @@ export default function Index() {
           </div>
         </div>
       </div>
+      {/* Tokenomics & FAQ (visible below features) */}
+      <div className="container mx-auto px-4 py-12">
+        <div className="flex flex-col lg:flex-row gap-8 items-start">
+          <div className="flex-1">
+            {/* left intentionally blank for layout balance */}
+          </div>
+
+          <div className="w-full lg:w-96 space-y-4">
+            <Card className="glass-effect p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-lg bg-primary/10">
+                  <Activity className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <div className="text-lg font-semibold">Tokenomics</div>
+                  <div className="text-xs text-muted-foreground">Balanced supply for creators and community rewards</div>
+                </div>
+              </div>
+              <div className="mt-4 space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <div>Creators</div>
+                  <div className="font-medium">40%</div>
+                </div>
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-web3-purple to-web3-cyan w-2/5" />
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <div>Community</div>
+                  <div className="font-medium">35%</div>
+                </div>
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-web3-purple to-web3-cyan w-1/3" />
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <div>Reserve</div>
+                  <div className="font-medium">25%</div>
+                </div>
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-web3-purple to-web3-cyan w-1/4" />
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <h3 className="text-2xl font-bold mb-4">Frequently Asked Questions</h3>
+            <Accordion type="single" collapsible>
+              <AccordionItem value="q1">
+                <AccordionTrigger>How do I mint a character?</AccordionTrigger>
+                <AccordionContent>
+                  Connect your Avalanche-compatible wallet, describe your character and click Mint. The character metadata will be stored on IPFS and the NFT minted on-chain.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="q2">
+                <AccordionTrigger>Can characters learn over time?</AccordionTrigger>
+                <AccordionContent>
+                  Yes — we plan on adding optional on-chain memory and off-chain knowledge stores so characters can remember important events.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="q3">
+                <AccordionTrigger>Where are avatars stored?</AccordionTrigger>
+                <AccordionContent>
+                  Avatars are uploaded to IPFS via Pinata (or your preferred gateway) and referenced in the NFT metadata.
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
+
+          <div>
+            <h3 className="text-2xl font-bold mb-4">Recent Activity</h3>
+            <div className="space-y-3">
+              <div className="p-3 glass-effect rounded-md">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm">Luffy minted "Captain"</div>
+                  <div className="text-xs text-muted-foreground">2m ago</div>
+                </div>
+              </div>
+              <div className="p-3 glass-effect rounded-md">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm">Itachi updated personality</div>
+                  <div className="text-xs text-muted-foreground">10m ago</div>
+                </div>
+              </div>
+              <div className="p-3 glass-effect rounded-md">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm">Zoro started a duel chat</div>
+                  <div className="text-xs text-muted-foreground">1h ago</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 }

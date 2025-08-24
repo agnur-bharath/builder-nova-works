@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, Send, Sparkles, Zap, User, Bot } from "lucide-react";
+import { ArrowLeft, Send, Sparkles, Zap, User, Bot, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useParams, useNavigate } from "react-router-dom";
 import { useCharacters, useChat } from "@/hooks/useWeb3";
@@ -27,6 +27,15 @@ interface ChatCharacter {
   creator: string;
   isPublic: boolean;
 }
+
+// Hard-coded override for known public characters (same as Index page)
+const HARDCODED_AVATARS: Record<string, string> = {
+  dog: "/images/dog.png",
+  luffy: "/images/luffy.png",
+  zoro: "/images/zoro.png",
+  itachi: "/images/itachi.png",
+  elon: "/images/Elon.png",
+};
 
 const mockCharacter: ChatCharacter = {
   id: "1",
@@ -73,6 +82,23 @@ export default function Chat() {
   const character =
     characters.find((c) => c.id === characterId) || mockCharacter;
 
+  // Use hardcoded avatars for known characters (same logic as Index page)
+  const key = (character.name || "").toLowerCase();
+  const avatarSrc = HARDCODED_AVATARS[key] ?? character.avatarUrl;
+
+  // Debug: Log character data to see what's being loaded
+  useEffect(() => {
+    console.log('Chat Component - Character Data:', {
+      characterId,
+      characters: characters.length,
+      foundCharacter: characters.find((c) => c.id === characterId),
+      currentCharacter: character,
+      avatarUrl: character.avatarUrl,
+      avatarSrc,
+      hardcodedKey: key
+    });
+  }, [characterId, characters, character, avatarSrc, key]);
+
   useEffect(() => {
     // Auto-scroll to bottom when new messages arrive
     if (scrollAreaRef.current) {
@@ -88,7 +114,7 @@ export default function Chat() {
   };
 
   const generateAIResponse = (userMessage: string): string => {
-    // Mock AI response - replace with actual AI integration
+    // Fallback responses when AI is not available
     const responses = [
       "*nods knowingly* Your question reveals a deep curiosity about the arcane arts...",
       "The ancient texts speak of such matters... *consults ethereal grimoire*",
@@ -118,7 +144,7 @@ export default function Chat() {
               Back
             </Button>
             <Avatar className="w-10 h-10 ring-2 ring-primary/20">
-              <AvatarImage src={character.avatarUrl} />
+              <AvatarImage src={avatarSrc} />
               <AvatarFallback>
                 <Bot className="w-5 h-5" />
               </AvatarFallback>
@@ -162,7 +188,7 @@ export default function Chat() {
               >
                 {message.isFromCharacter && (
                   <Avatar className="w-8 h-8 ring-2 ring-primary/20 shrink-0">
-                    <AvatarImage src={character.avatarUrl} />
+                    <AvatarImage src={avatarSrc} />
                     <AvatarFallback>
                       <Bot className="w-4 h-4" />
                     </AvatarFallback>
@@ -215,7 +241,7 @@ export default function Chat() {
             {isLoading && (
               <div className="flex gap-3 justify-start">
                 <Avatar className="w-8 h-8 ring-2 ring-primary/20 shrink-0">
-                  <AvatarImage src={character.avatarUrl} />
+                  <AvatarImage src={avatarSrc} />
                   <AvatarFallback>
                     <Bot className="w-4 h-4" />
                   </AvatarFallback>
@@ -231,6 +257,36 @@ export default function Chat() {
                       <span className="text-sm text-muted-foreground">
                         {character.name} is typing...
                       </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* AI Configuration Help Message */}
+            {messages.length > 0 && messages.some(m => m.content.includes('[AI configuration error') || m.content.includes('[AI Error:')) && (
+              <div className="flex gap-3 justify-start">
+                <Avatar className="w-8 h-8 ring-2 ring-primary/20 shrink-0">
+                  <AvatarFallback>
+                    <AlertCircle className="w-4 h-4 text-amber-500" />
+                  </AvatarFallback>
+                </Avatar>
+                <Card className="glass-effect web3-border border-amber-500/30">
+                  <CardContent className="p-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 text-amber-500" />
+                        <span className="font-medium text-amber-700 dark:text-amber-400">AI Configuration Required</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        To chat with {character.name}, you need to set up your Gemini AI API key. 
+                        Please check the <strong>GEMINI_SETUP.md</strong> file for detailed instructions.
+                      </p>
+                      <div className="text-xs text-muted-foreground">
+                        <strong>Quick fix:</strong> Create a <code>.env</code> file in your project root with:
+                        <br />
+                        <code className="bg-muted px-2 py-1 rounded">VITE_GEMINI_API_KEY=your_api_key_here</code>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -265,7 +321,7 @@ export default function Chat() {
           <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
             <div className="flex items-center gap-2">
               <Zap className="w-3 h-3" />
-              <span>Powered by Avalanche & AI</span>
+              <span>Powered by Avalanche & Gemini AI</span>
             </div>
             <div>{newMessage.length}/500</div>
           </div>
