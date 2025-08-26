@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@openzeppelin/contracts':
-        specifier: 4.9.5
-        version: 4.9.5
+        specifier: 4.9.6
+        version: 4.9.6
     devDependencies:
       '@nomiclabs/hardhat-ethers':
         specifier: ^2.2.2
@@ -221,8 +221,8 @@ packages:
       ethers: ^5.0.0
       hardhat: ^2.0.0
 
-  '@openzeppelin/contracts@4.9.5':
-    resolution: {integrity: sha512-ZK+W5mVhRppff9BE6YdR8CC52C8zAvsVAiWhEtQ5+oNxFE6h1WdeWo+FJSF8KKvtxxVYZ7MTP/5KoVpAU3aSWg==}
+  '@openzeppelin/contracts@4.9.6':
+    resolution: {integrity: sha512-xSmezSupL+y9VkHZJGDoCBpmnB2ogM13ccaYDWqJTfS3dbuHkgjuwDFUmaFauBCboQMGB/S5UqUl2y54X99BmA==}
 
   '@scure/base@1.1.9':
     resolution: {integrity: sha512-8YKhl8GHiNI/pU2VMaofa2Tor7PJRAjwQLBBuilkJ9L5+13yVbC7JO/wS7piioAvPSwR3JKM1IJ/u4xQzbcXKg==}
@@ -1258,7 +1258,7 @@ snapshots:
       ethers: 5.8.0
       hardhat: 2.26.3
 
-  '@openzeppelin/contracts@4.9.5': {}
+  '@openzeppelin/contracts@4.9.6': {}
 
   '@scure/base@1.1.9': {}
 
